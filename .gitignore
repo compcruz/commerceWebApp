@@ -1,0 +1,12 @@
+# Backend
+/backend/target/
+/backend/.mvn/
+/backend/.idea/
+/backend/.classpath
+/backend/.project
+/backend/.settings/
+
+# Frontend
+/frontend/node_modules/
+/frontend/build/
+/frontend/.env
