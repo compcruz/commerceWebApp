@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 @RequestMapping("/api/orders")
 public class OrderController {
     @Autowired
+    private com.example.demo.service.EmailService emailService;
+    @Autowired
     private OrderRepository orderRepository;
     @Autowired
     private ProductRepository productRepository;
@@ -68,7 +70,13 @@ public class OrderController {
         order.setState(orderRequest.state);
         order.setZip(orderRequest.zip);
         order.setCountry(orderRequest.country);
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        try {
+            emailService.sendOrderConfirmation(user.getEmail(), savedOrder);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return savedOrder;
     }
 
     @PutMapping("/{id}")
