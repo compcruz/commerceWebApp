@@ -8,4 +8,12 @@ public class OrderRequest {
         public int quantity;
     }
     public List<Item> items;
+
+    // Address fields
+    public String name;
+    public String street;
+    public String city;
+    public String state;
+    public String zip;
+    public String country;
 }

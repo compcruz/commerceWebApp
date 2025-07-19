@@ -8,25 +8,68 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
+import StripeProvider from "./StripeProvider.jsx";
+import StripeCheckoutForm from "./StripeCheckoutForm";
 
 function Cart({ onCheckout }) {
   const { cart, removeFromCart, clearCart } = useCart();
   const total = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const { token } = useAuth();
 
-  // Payment fields state
-  const [cardNumber, setCardNumber] = React.useState("");
-  const [expiry, setExpiry] = React.useState("");
-  const [cvc, setCvc] = React.useState("");
-  const [touched, setTouched] = React.useState({});
+  // Address fields state
+  const [address, setAddress] = React.useState({
+    name: '',
+    street: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: ''
+  });
+  const [addressTouched, setAddressTouched] = React.useState({});
 
-  // Simple validation
-  const cardValid = /^\d{16}$/.test(cardNumber.replace(/\s+/g, ""));
-  const expiryValid = /^(0[1-9]|1[0-2])\/(\d{2})$/.test(expiry);
-  const cvcValid = /^\d{3,4}$/.test(cvc);
-  const paymentValid = cardValid && expiryValid && cvcValid;
+  // Remove old payment fields and validation
 
-  const handleBlur = field => setTouched(t => ({ ...t, [field]: true }));
+  const addressValid = Object.values(address).every(v => v.trim() !== '');
+
+  const handleAddressChange = (field, value) => {
+    setAddress(a => ({ ...a, [field]: value }));
+  };
+  const handleAddressBlur = field => setAddressTouched(t => ({ ...t, [field]: true }));
+
+  // Handle order placement after payment
+  const [orderLoading, setOrderLoading] = React.useState(false);
+  const [orderError, setOrderError] = React.useState(null);
+  const [orderSuccess, setOrderSuccess] = React.useState(false);
+
+  const handlePaymentSuccess = async (paymentIntent) => {
+    setOrderLoading(true);
+    setOrderError(null);
+    try {
+      // Prepare order payload
+      const items = cart.map(({ product, quantity }) => ({ productId: product.id, quantity }));
+      const orderPayload = {
+        items,
+        ...address
+      };
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(orderPayload)
+      });
+      if (!res.ok) throw new Error("Order failed");
+      setOrderSuccess(true);
+      clearCart();
+    } catch (err) {
+      setOrderError(err.message);
+    } finally {
+      setOrderLoading(false);
+    }
+  };
+
+  const handlePaymentError = (err) => {
+    setOrderError(err.message || "Payment failed");
+  };
+
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', minHeight: '60vh', py: 4 }}>
@@ -58,61 +101,104 @@ function Cart({ onCheckout }) {
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>Total:</Typography>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>${total.toFixed(2)}</Typography>
               </Box>
+              {/* Address Section */}
               <Box sx={{ mt: 4, mb: 2 }}>
                 <Typography variant="h6" sx={{ mb: 2, color: '#f1641e', fontWeight: 600 }}>
-                  Payment Details
+                  Delivery Address
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
                     <TextField
-                      label="Card Number"
+                      label="Full Name"
                       variant="outlined"
                       fullWidth
-                      value={cardNumber}
-                      onChange={e => setCardNumber(e.target.value.replace(/[^\d]/g, '').replace(/(\d{4})/g, '$1 ').trim())}
-                      onBlur={() => handleBlur('cardNumber')}
-                      error={touched.cardNumber && !cardValid}
-                      helperText={touched.cardNumber && !cardValid ? "Enter a valid 16-digit card number" : ""}
-                      inputProps={{ maxLength: 19, inputMode: 'numeric', pattern: '\\d*' }}
+                      value={address.name}
+                      onChange={e => handleAddressChange('name', e.target.value)}
+                      onBlur={() => handleAddressBlur('name')}
+                      error={addressTouched.name && !address.name.trim()}
+                      helperText={addressTouched.name && !address.name.trim() ? "Required" : ""}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Street Address"
+                      variant="outlined"
+                      fullWidth
+                      value={address.street}
+                      onChange={e => handleAddressChange('street', e.target.value)}
+                      onBlur={() => handleAddressBlur('street')}
+                      error={addressTouched.street && !address.street.trim()}
+                      helperText={addressTouched.street && !address.street.trim() ? "Required" : ""}
                     />
                   </Grid>
                   <Grid item xs={6}>
                     <TextField
-                      label="Expiry (MM/YY)"
+                      label="City"
                       variant="outlined"
                       fullWidth
-                      value={expiry}
-                      onChange={e => setExpiry(e.target.value.replace(/[^\d/]/g, '').slice(0, 5))}
-                      onBlur={() => handleBlur('expiry')}
-                      error={touched.expiry && !expiryValid}
-                      helperText={touched.expiry && !expiryValid ? "MM/YY" : ""}
-                      inputProps={{ maxLength: 5, placeholder: 'MM/YY' }}
+                      value={address.city}
+                      onChange={e => handleAddressChange('city', e.target.value)}
+                      onBlur={() => handleAddressBlur('city')}
+                      error={addressTouched.city && !address.city.trim()}
+                      helperText={addressTouched.city && !address.city.trim() ? "Required" : ""}
                     />
                   </Grid>
                   <Grid item xs={6}>
                     <TextField
-                      label="CVC"
+                      label="State"
                       variant="outlined"
                       fullWidth
-                      value={cvc}
-                      onChange={e => setCvc(e.target.value.replace(/[^\d]/g, '').slice(0, 4))}
-                      onBlur={() => handleBlur('cvc')}
-                      error={touched.cvc && !cvcValid}
-                      helperText={touched.cvc && !cvcValid ? "3 or 4 digits" : ""}
-                      inputProps={{ maxLength: 4, inputMode: 'numeric', pattern: '\\d*' }}
+                      value={address.state}
+                      onChange={e => handleAddressChange('state', e.target.value)}
+                      onBlur={() => handleAddressBlur('state')}
+                      error={addressTouched.state && !address.state.trim()}
+                      helperText={addressTouched.state && !address.state.trim() ? "Required" : ""}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      label="Zip Code"
+                      variant="outlined"
+                      fullWidth
+                      value={address.zip}
+                      onChange={e => handleAddressChange('zip', e.target.value)}
+                      onBlur={() => handleAddressBlur('zip')}
+                      error={addressTouched.zip && !address.zip.trim()}
+                      helperText={addressTouched.zip && !address.zip.trim() ? "Required" : ""}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      label="Country"
+                      variant="outlined"
+                      fullWidth
+                      value={address.country}
+                      onChange={e => handleAddressChange('country', e.target.value)}
+                      onBlur={() => handleAddressBlur('country')}
+                      error={addressTouched.country && !address.country.trim()}
+                      helperText={addressTouched.country && !address.country.trim() ? "Required" : ""}
                     />
                   </Grid>
                 </Grid>
               </Box>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button variant="outlined" color="secondary" onClick={clearCart} disabled={cart.length === 0} sx={{ fontWeight: 600 }}>
-                  Clear Cart
-                </Button>
-                <Button variant="contained" color="primary" onClick={onCheckout} disabled={cart.length === 0 || !token || !paymentValid} sx={{ fontWeight: 600, background: '#f1641e', '&:hover': { background: '#d35400' } }}>
-                  Checkout
-                </Button>
-              </Box>
-              {!token && <Typography sx={{ color: 'red', mt: 2, textAlign: 'center' }}>Login to place order</Typography>}
+
+              {/* Payment Section with Stripe */}
+              <StripeProvider>
+                <Box sx={{ mt: 4, mb: 2 }}>
+                  <Typography variant="h6" sx={{ mb: 2, color: '#f1641e', fontWeight: 600 }}>
+                    Payment Details
+                  </Typography>
+                  <StripeCheckoutForm
+                    amount={Math.round(total * 100)}
+                    address={address}
+                    onPaymentSuccess={handlePaymentSuccess}
+                    onPaymentError={handlePaymentError}
+                    disabled={!addressValid || cart.length === 0 || !token || orderLoading}
+                  />
+                  {orderError && <Typography color="error" sx={{ mt: 2 }}>{orderError}</Typography>}
+                  {orderSuccess && <Typography color="primary" sx={{ mt: 2 }}>Order placed successfully!</Typography>}
+                </Box>
+              </StripeProvider>
             </Box>
           )}
         </CardContent>

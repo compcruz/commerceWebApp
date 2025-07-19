@@ -120,7 +120,7 @@ function MainApp() {
       <Box sx={{ width: '95vw', maxWidth: '1800px', mx: 'auto', p: { xs: 0, md: 2 }, bgcolor: '#fff', borderRadius: 3, boxShadow: 2, minHeight: '70vh' }}>
         {activeTab === 'products' && <ProductList columns={5} />}
         {activeTab === 'orders' && <OrderHistory />}
-        {activeTab === 'cart' && <Cart onCheckout={handleCheckout} />}
+        {activeTab === 'cart' && <Cart />}
       </Box>
     </Box>
   );
@@ -128,13 +128,11 @@ function MainApp() {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <CartProvider>
-          <MainApp />
-        </CartProvider>
-      </AuthProvider>
-    </ErrorBoundary>
+    <AuthProvider>
+      <CartProvider>
+        <MainApp />
+      </CartProvider>
+    </AuthProvider>
   );
 }
 

@@ -61,7 +61,13 @@ public class OrderController {
         Order order = new Order();
         order.setUser(user);
         order.setProducts(products);
-        order.setOrderDate(java.time.LocalDateTime.now());
+        order.setOrderDate(LocalDateTime.now());
+        order.setName(orderRequest.name);
+        order.setStreet(orderRequest.street);
+        order.setCity(orderRequest.city);
+        order.setState(orderRequest.state);
+        order.setZip(orderRequest.zip);
+        order.setCountry(orderRequest.country);
         return orderRepository.save(order);
     }
 
