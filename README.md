@@ -27,3 +27,7 @@ See backend and frontend folders for setup instructions.
 
 6. Order
    <img width="1480" height="846" alt="Screenshot 2025-07-19 at 1 14 13 AM" src="https://github.com/user-attachments/assets/c99384d1-19a3-4d66-af6e-2bbdbc60f012" />
+
+7. Email Notifcation
+   <img width="1078" height="633" alt="Screenshot 2025-07-19 at 4 13 27 PM" src="https://github.com/user-attachments/assets/ab2aa2f9-94d6-4de4-9866-886af82ba042" />
+
