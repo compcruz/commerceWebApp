@@ -31,3 +31,6 @@ See backend and frontend folders for setup instructions.
 7. Email Notifcation
    <img width="1078" height="633" alt="Screenshot 2025-07-19 at 4 13 27 PM" src="https://github.com/user-attachments/assets/ab2aa2f9-94d6-4de4-9866-886af82ba042" />
 
+8. Admin Order Dashboard
+   <img width="1450" height="741" alt="Screenshot 2025-07-19 at 5 03 08 PM" src="https://github.com/user-attachments/assets/dce88878-a70c-407f-a72b-ec2830ffab26" />
+
