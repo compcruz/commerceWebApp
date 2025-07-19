@@ -10,6 +10,8 @@ import com.example.demo.dto.OrderRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -80,9 +82,28 @@ public class OrderController {
     }
 
     @PutMapping("/{id}")
-    public Order updateOrder(@PathVariable Long id, @RequestBody Order order) {
-        order.setId(id);
+    public Order updateOrder(@PathVariable Long id, @RequestBody OrderRequest orderRequest) {
+        Order order = orderRepository.findById(id).orElseThrow();
+        order.setName(orderRequest.name);
+        order.setStreet(orderRequest.street);
+        order.setCity(orderRequest.city);
+        order.setState(orderRequest.state);
+        order.setZip(orderRequest.zip);
+        order.setCountry(orderRequest.country);
         return orderRepository.save(order);
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        Order order = orderRepository.findById(id).orElseThrow();
+        try {
+            Order.OrderStatus newStatus = Order.OrderStatus.valueOf(body.get("status"));
+            order.setStatus(newStatus);
+            orderRepository.save(order);
+            return ResponseEntity.ok(order);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Invalid status value");
+        }
     }
 
     @DeleteMapping("/{id}")

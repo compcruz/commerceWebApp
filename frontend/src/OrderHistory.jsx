@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "./AuthContext";
+import AdminOrderStatus from "./AdminOrderStatus";
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
@@ -7,7 +8,7 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 
 function OrderHistory() {
-  const { token } = useAuth();
+  const { token, isAdmin } = useAuth(); // Assume isAdmin for demo
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -53,6 +54,16 @@ function OrderHistory() {
                   <Typography variant="subtitle2" sx={{ color: '#888', mb: 1 }}>
                     {new Date(order.orderDate).toLocaleString()}
                   </Typography>
+                  <Typography variant="body2" sx={{ mb: 1, color: '#666' }}>
+                    Status: <b>{order.status}</b>
+                  </Typography>
+                  {isAdmin && (
+                    <AdminOrderStatus
+                      orderId={order.id}
+                      currentStatus={order.status}
+                      onStatusChange={() => window.location.reload()}
+                    />
+                  )}
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#333' }}>
                     Products
                   </Typography>

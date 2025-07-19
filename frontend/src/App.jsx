@@ -4,6 +4,7 @@ import { CartProvider, useCart } from "./CartContext";
 import ProductList from "./ProductList";
 import Cart from "./Cart";
 import OrderHistory from "./OrderHistory";
+import AdminOrdersDashboard from "./AdminOrdersDashboard";
 import ErrorBoundary from "./ErrorBoundary";
 import Login from "./Login";
 import Register from "./Register";
@@ -22,7 +23,8 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 
 function MainApp() {
-  const { token, username, logout, login } = useAuth();
+  const { token, username, logout, login, role } = useAuth();
+  const isAdmin = role && role.toLowerCase() === 'admin';
   const { cart, clearCart } = useCart();
   const [showRegister, setShowRegister] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('products');
@@ -95,6 +97,7 @@ function MainApp() {
           <Tab value="products" label={<><Inventory2Icon sx={{mr:1}}/>Products</>} />
           <Tab value="orders" label={<><ReceiptLongIcon sx={{mr:1}}/>Orders</>} />
           <Tab value="cart" label={<><ShoppingCartIcon sx={{mr:1}}/>Cart ({cart.length})</>} />
+          {isAdmin && <Tab value="admin" label={<>🛠️ Admin</>} />} 
         </Tabs>
       </Box>
       {orderMsg && (
@@ -121,6 +124,7 @@ function MainApp() {
         {activeTab === 'products' && <ProductList columns={5} />}
         {activeTab === 'orders' && <OrderHistory />}
         {activeTab === 'cart' && <Cart />}
+        {isAdmin && activeTab === 'admin' && <AdminOrdersDashboard />}
       </Box>
     </Box>
   );
